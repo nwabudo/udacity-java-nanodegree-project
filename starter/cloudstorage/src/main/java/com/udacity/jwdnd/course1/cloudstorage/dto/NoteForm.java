@@ -3,10 +3,15 @@ package com.udacity.jwdnd.course1.cloudstorage.dto;
 public class NoteForm {
 
     private Integer noteId = null;
-    private String noteTitle;
-    private String noteDescription;
+    private String noteTitle = "";
+    private String noteDescription = "";
 
     public NoteForm() {
+    }
+
+    public NoteForm(String noteTitle, String noteDescription) {
+        this.noteTitle = noteTitle;
+        this.noteDescription = noteDescription;
     }
 
     public NoteForm(Integer noteId, String noteTitle, String noteDescription) {

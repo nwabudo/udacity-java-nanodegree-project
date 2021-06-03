@@ -57,4 +57,10 @@ public class CredForm {
         this.password = password;
         this.encPassword = encPassword;
     }
+
+    public CredForm(String url, String username, String password) {
+        this.url = url;
+        this.username = username;
+        this.password = password;
+    }
 }

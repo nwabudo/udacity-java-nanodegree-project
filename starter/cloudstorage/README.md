@@ -80,6 +80,7 @@ The home page is the center of the application and hosts the three required piec
 The home page should have a logout button that allows the user to logout of the application and keep their data private.
 
 ### Testing
+
 Your tech lead trusts you to do a good job, but testing is important whether you're an excel number-cruncher or a full-stack coding superstar! The QA team at Super*Duper*Drive carries out extensive user testing. Still, your tech lead wants you to write some simple Selenium tests to verify user-facing functionality and prove that your code is feature-complete before the testers get their hands on it.
 
 1. Write tests for user signup, login, and unauthorized access restrictions.
@@ -99,10 +100,12 @@ Your tech lead trusts you to do a good job, but testing is important whether you
  - Write a test that deletes an existing set of credentials and verifies that the credentials are no longer displayed.
 
 ## Final Tips and Tricks
+
 ### Password Security
+
 Make sure not to save the plain text credentials of the application's users in the database. That's a recipe for data breach disaster! Use a hashing function to store a scrambled version instead. Your tech lead gave you a class called `HashService` that can hash passwords for you. When the user signs up, you only store a hashed version of their password in the database, and on login, you hash the password attempt before comparing it with the hashed password in the database. Your tech lead knows that can be a little confusing, so they provided this code sample to help illustrate the idea:
 
-```
+```java
 byte[] salt = new byte[16];
 random.nextBytes(salt);
 String encodedSalt = Base64.getEncoder().encodeToString(salt);
@@ -112,7 +115,7 @@ return hashedPassword;
 
 For storing credentials in the main part of the application, we can't hash passwords because it's a one-way operation. The user needs access to the unhashed password, after all! So instead, you should encrypt the passwords. Your tech lead provided you with a class called `EncryptionService` that can encrypt and decrypt passwords. When a user adds new credentials, encrypt the password before storing it in the database. When the user views those credentials, decrypt the password before displaying it. Here's a little code snippet on how to use `EncryptionService`:
 
-```
+```java
 SecureRandom random = new SecureRandom();
 byte[] key = new byte[16];
 random.nextBytes(key);

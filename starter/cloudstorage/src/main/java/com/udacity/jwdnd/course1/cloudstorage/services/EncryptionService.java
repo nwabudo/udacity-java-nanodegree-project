@@ -18,7 +18,6 @@ public class EncryptionService {
 
     public String encryptValue(String data, String key) {
         byte[] encryptedValue = null;
-
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             SecretKey secretKey = new SecretKeySpec(key.getBytes(), "AES");
@@ -28,13 +27,11 @@ public class EncryptionService {
                 | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e) {
             logger.error(e.getMessage());
         }
-
         return Base64.getEncoder().encodeToString(encryptedValue);
     }
 
     public String decryptValue(String data, String key) {
         byte[] decryptedValue = null;
-
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             SecretKey secretKey = new SecretKeySpec(key.getBytes(), "AES");

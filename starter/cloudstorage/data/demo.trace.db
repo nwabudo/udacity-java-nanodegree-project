@@ -1,0 +1,3 @@
+2021-06-02 16:16:03 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "C" not found; SQL statement:
+INSERT INTO C (filename, contenttype, filesize, userid, filedata)  VALUES(?, ?, ?, ?, ?) [42102-200]

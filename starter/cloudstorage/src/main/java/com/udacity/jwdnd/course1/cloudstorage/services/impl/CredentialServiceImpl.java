@@ -97,6 +97,11 @@ public class CredentialServiceImpl implements CredentialService {
         return creds;
     }
 
+    @Override
+    public void deleteAll() {
+        this.credentialMapper.deleteAll();
+    }
+
     public CredForm mapTo(Credential cred) {
         String decryptedPass = this.encryptionService.decryptValue(cred.getPassword(), cred.getKey());
         return new CredForm(cred.getCredentialId(), cred.getUrl(), cred.getUsername(), decryptedPass, cred.getPassword());

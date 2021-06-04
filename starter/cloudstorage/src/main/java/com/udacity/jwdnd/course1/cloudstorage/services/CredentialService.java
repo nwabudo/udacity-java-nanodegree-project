@@ -20,4 +20,6 @@ public interface CredentialService {
     int updateCredential(CredForm cred, int userId);
 
     List<CredForm> mapTo(List<Credential> credentials);
+
+    void deleteAll();
 }

@@ -10,4 +10,6 @@ public interface UserService {
     int createUser(User user);
 
     User getSignedInUser(Authentication authentication);
+
+    User getUserByUsername(String username);
 }

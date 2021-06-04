@@ -62,4 +62,9 @@ public class NoteServiceImpl implements NoteService {
                       .collect(Collectors.toList());
         return noteFormList;
     }
+
+    @Override
+    public void deleteAll() {
+        this.noteMapper.deleteAll();
+    }
 }

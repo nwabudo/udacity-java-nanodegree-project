@@ -1,10 +1,13 @@
 package com.udacity.jwdnd.course1.cloudstorage.pageObject;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class SignUpPage {
 
@@ -25,9 +28,13 @@ public class SignUpPage {
     @FindBy(id = "submit-button")
     private WebElement submitButton;
 
-    private By signUpSuccess = By.id("success-msg");
+    @FindBy(css = "#success-msg")
+    private WebElement successMessage;
 
-    private By signUpFailure = By.cssSelector("#error-msg span");
+    @FindBy(css = "#error-msg")
+    private WebElement errorMessage;
+
+    private By signUpFailureMessage = By.cssSelector("#error-msg span");
 
     @FindBy(id = "login-link")
     private WebElement loginLink;
@@ -41,24 +48,65 @@ public class SignUpPage {
         PageFactory.initElements(driver, this);
     }
 
-    public SignInPage initiateSignUp(SignUpDetails signupObject) throws InterruptedException {
-        this.firstNameInput.sendKeys(signupObject.getFirstName());
-        this.lastNameInput.sendKeys(signupObject.getLastName());
-        this.userNameInput.sendKeys(signupObject.getUsername());
-        this.passwordInput.sendKeys(signupObject.getPassword());
+    public void fillSignUpPage(String firstName, String lastName, String username, String password) throws InterruptedException {
+        this.firstNameInput.sendKeys(firstName);
+        this.lastNameInput.sendKeys(lastName);
+        this.userNameInput.sendKeys(username);
+        this.passwordInput.sendKeys(password);
+    }
 
-        this.submitButton.submit();
+    public String getFirstNameField() {
+        return firstNameInput.getAttribute("value");
+    }
 
-        try{
-            this.loginLink.click();
-        }catch(Exception ex){
-            String errorMsg = driver.findElement(signUpFailure).getText();
-            System.out.println(errorMsg);
-        }
+    public String getLastNameField() {
+        return lastNameInput.getAttribute("value");
+    }
+
+    public String getUsernameField() {
+        return userNameInput.getAttribute("value");
+    }
+
+    public String getPasswordField() {
+        return passwordInput.getAttribute("value");
+    }
+
+    public WebElement getSubmitButton() {
+        return submitButton;
+    }
+
+    public void clickSignUpButton(){
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", submitButton);
+    }
+
+    public void clickLogInButton(){
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loginLink);
+    }
+
+    public LoginPage initiateSignUp() throws InterruptedException {
+
+        clickSignUpButton();
+
+        Thread.sleep(2000);
+
+         try{
+             if(getErrorMessage())
+                 System.out.println(this.driver.findElement(signUpFailureMessage).getText());
+         }catch(Exception ex){
+             clickLogInButton();
+         }
+
         Thread.sleep(3000);
         String url = driver.getCurrentUrl();
-        url = url.split("/(?!.*/)")[0] + "/login";
-        driver.get(url);
-        return new SignInPage(driver);
+        if(!url.contains("login")){
+            url = url.split("/(?!.*/)")[0] + "/login";
+            driver.get(url);
+        }
+        new WebDriverWait(driver,4).until(ExpectedConditions.titleIs("Login"));
+        return new LoginPage(driver);
+    }
+
+    public boolean getErrorMessage() {
+        return this.errorMessage.isDisplayed();
     }
 }

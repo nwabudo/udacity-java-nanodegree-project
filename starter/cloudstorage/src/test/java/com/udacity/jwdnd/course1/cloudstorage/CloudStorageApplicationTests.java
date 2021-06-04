@@ -2,20 +2,26 @@ package com.udacity.jwdnd.course1.cloudstorage;
 
 import com.udacity.jwdnd.course1.cloudstorage.dto.CredForm;
 import com.udacity.jwdnd.course1.cloudstorage.dto.NoteForm;
+import com.udacity.jwdnd.course1.cloudstorage.entity.User;
 import com.udacity.jwdnd.course1.cloudstorage.pageObject.*;
+import com.udacity.jwdnd.course1.cloudstorage.services.CredentialService;
+import com.udacity.jwdnd.course1.cloudstorage.services.NoteService;
+import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -25,7 +31,16 @@ class CloudStorageApplicationTests {
 	@LocalServerPort
 	private int port;
 
-	private WebDriver driver;
+	@Autowired
+	private CredentialService credentialService;
+
+	@Autowired
+	private NoteService noteService;
+
+	@Autowired
+	private UserService userService;
+
+	private static WebDriver driver;
 
 	// Sign Up and Login Details
 	public String username = "budos";
@@ -47,7 +62,7 @@ class CloudStorageApplicationTests {
 
 	public String editUrl = "www.udacity.com";
 	public String editUserName = "unity_matters";
-	public String editUlPassword = "kitanma_123";
+	public String editUrlPassword = "kitanma_123";
 
 	// Level
 	public final int LEVEL = 1;
@@ -61,35 +76,25 @@ class CloudStorageApplicationTests {
 	@BeforeAll
 	static void beforeAll() {
 		WebDriverManager.chromedriver().setup();
+
 	}
 
 	@BeforeEach
 	public void openBrowser() {
-		this.driver = new ChromeDriver();
+		driver = new ChromeDriver();
 		baseURL = "http://localhost:" + port;
-
 		homeURL = baseURL + "/home";
 
-		driver.get(baseURL + "/auth/login");
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-		driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
+		// Delete all existing Credentials
+		this.credentialService.deleteAll();
+
+		// Delete all existing Notes
+		this.noteService.deleteAll();
 	}
 
-//	@BeforeMethod
-//	public void openBrowser(){
-//		driver.manage().deleteAllCookies();
-//
-//		driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
-//		driver.manage().timeouts().pageLoadTimeout(15, TimeUnit.SECONDS);
-//
-//		WebElement signUpButton = driver.findElement(By.xpath("//a[contains(text(),'Free Signup')]"));
-//		signUpButton.click();
-//
-//	}
-
-	@AfterEach
-	public void afterEach() {
-		if (this.driver != null) {
+	@AfterAll
+	public static void afterAll() {
+		if (driver != null) {
 			driver.quit();
 			driver = null;
 		}
@@ -98,153 +103,277 @@ class CloudStorageApplicationTests {
 	// Write a test that signs up a new user, logs in, verifies that the home page is accessible,
 	// logs out, and verifies that the home page is no longer accessible.
 	@Test
-	@Order(1)
-	public void getLoginAndRegistrationPage() throws InterruptedException {
+	public void testUserSignUp() throws InterruptedException {
 		// Write a test that verifies that an unauthorized user can only access the login and signup pages.
-		String actualUrl = driver.getCurrentUrl();
-		String loginUrl = baseURL + "/auth/login";
 
+		String loginUrl = baseURL + "/auth/login";
+		driver.get(loginUrl);
+
+		Thread.sleep(2000);
+		String actualUrl = driver.getCurrentUrl();
 		assertEquals("Login", driver.getTitle());
 		assertEquals(loginUrl, actualUrl);
 
-		WebElement signUpElement = driver.findElement(signUpLink);
-		signUpElement.click();
-		actualUrl = driver.getCurrentUrl();
+		driver.findElement(signUpLink).click();
+		Thread.sleep(5000);
+		new WebDriverWait(driver,4).until(ExpectedConditions.titleIs("Sign Up"));
 		assertEquals("Sign Up", driver.getTitle());
 
-		SignUpDetails signupObject = new SignUpDetails();
-		signupObject.setFirstName(firstName);
-		signupObject.setLastName(lastName);
-		signupObject.setUsername(username);
-		signupObject.setPassword(password);
-		SignInPage signInPage = new SignUpPage(driver).initiateSignUp(signupObject);
+		SignUpPage signUpPage = new SignUpPage(driver);
 
-		HomePage homePage = signInPage.doLogin(username, password);
+		// Fill the Sign Up Page
+		signUpPage.fillSignUpPage(firstName, lastName, username, password);
+
+		// Confirm that the Values contained in the SignUp form are valid and same as the objects passed
+		assertEquals(firstName, signUpPage.getFirstNameField());
+		assertEquals(lastName, signUpPage.getLastNameField());
+		assertEquals(username, signUpPage.getUsernameField());
+		assertEquals(password, signUpPage.getPasswordField());
+
+		// Wait for 2 seconds
+		Thread.sleep(2000);
+
+		new SignUpPage(driver).initiateSignUp();
+
+		Thread.sleep(3000);
+
+		assertEquals("Login", driver.getTitle());
+	}
+
+	// Try to Login
+	@Test
+	public void testLogin() throws InterruptedException {
+		testUserSignUp();
+
+		driver.get(baseURL + "/auth/login");
+
+		new LoginPage(driver).doLogin(username, password);
+
+		assertEquals("Home", driver.getTitle());
+	}
+
+	// Try to navigate to the homePage by url without signing in
+	@Test
+	public void testUnauthorizedAccessRestrictions() throws InterruptedException{
+		//Try accessing home page without Logging in
+		String homeLink = baseURL + "/home";
+		driver.get(homeLink);
+
+		//Verifies that such attempt redirects user to login page
+		assertNotEquals(homeLink, driver.getCurrentUrl());
+		assertEquals("Login", driver.getTitle());
+	}
+
+	/* Write a test that signs up a new user, logs in,
+	verifies that the home page is accessible, logs out,
+	and verifies that the home page is no longer accessible.*/
+	@Test
+	public void testUserSignUpLoginHomePageAccessLogOutHomePageRestrict()
+			throws InterruptedException{
+		// Sign up
+		testUserSignUp();
+
+		// Go to login page
+		driver.get(baseURL + "/auth/login");
+
+		//Initialize driver for login page
+		LoginPage loginPage = new LoginPage(driver);
+
+		//Have user fill login fields
+		HomePage homePage = loginPage.doLogin(username, password);
+
+		//Check that user has access to home page
+		assertEquals("Home", driver.getTitle());
+
+		//Wait for 2 seconds
+		Thread.sleep(2000);
+
+		//Click log out button to exit home page
 		homePage.logOut();
 
-		// Try to navigate to the homePage by url without signing in
-		String homeLink = baseURL + "/home";
-		driver.get(baseURL + "/home");
-		actualUrl = driver.getCurrentUrl();
-		assertNotEquals(homeLink, actualUrl);
+		assertEquals("Login", driver.getTitle());
+
+		Thread.sleep(2000);
+
+		// verifies that the home page is no longer accessible
+		testUnauthorizedAccessRestrictions();
 	}
+
 
 	// Write a test that creates a note, and verifies it is displayed.
 	@Test
-	@Order(2)
-	public void noteCreation(){
-		HomePage homePage = new SignInPage(driver).doLogin(username, password);
+	public void noteCreation() throws InterruptedException {
+		testLogin();
 
-		NotePage notePage = homePage.returnNotePage();
+		Thread.sleep(2000);
+
+		assertEquals("Home", driver.getTitle());
+		NotePage notePage = new HomePage(driver).returnNotePage();
+
+		Thread.sleep(2000);
 		ResultPage result = notePage.createNote(title, description);
-		homePage = result.redirectToHome(homeURL);
+		HomePage homePage = result.redirectToHome(homeURL);
 
+		Thread.sleep(2000);
 		List<NoteForm> notes = homePage.returnNotePage().readNotes(LEVEL);
 		assertEquals(notes.size(), 1);
-		NoteForm note = notes.get(LEVEL - 1);
 
-		assertEquals(title, note.getNoteTitle());
-		assertEquals(description, note.getNoteDescription());
-		homePage.logOut();
+		Thread.sleep(2000);
+		NoteForm note = notes.get(LEVEL - 1);
+		assertThat(note)
+			.isNotNull()
+			.satisfies(u -> {
+				assertThat(u.getNoteTitle()).isEqualTo(title);
+				assertThat(u.getNoteDescription()).isEqualTo(description);
+			});
 	}
 
 	// Write a test that edits an existing note and verifies that the changes are displayed.
 	@Test
-	@Order(3)
-	public void noteManipulation(){
-		HomePage homePage = new SignInPage(driver).doLogin(username, password);
+	public void noteManipulation() throws InterruptedException {
+		noteCreation();
 
-		NotePage notePage = homePage.returnNotePage();
+		Thread.sleep(2000);
+
+		User user = this.userService.getUserByUsername(this.username);
+		int size = this.noteService.getNotesByUserId(user.getUserId()).size();
+		assertEquals("Home", driver.getTitle());
+		NotePage notePage = new HomePage(driver).returnNotePage();
+
+		Thread.sleep(2000);
 		ResultPage result = notePage.editNote(editTitle, editDescription, LEVEL);
-		homePage = result.redirectToHome(homeURL);
+		HomePage homePage = result.redirectToHome(homeURL);
 
-		List<NoteForm> notes = homePage.returnNotePage().readNotes(LEVEL);
-		assertEquals(notes.size(), 1);
+		Thread.sleep(2000);
+		List<NoteForm> notes = homePage.returnNotePage().readNotes(size);
+		assertEquals(notes.size(), size);
+
+		Thread.sleep(2000);
 		NoteForm note = notes.get(LEVEL - 1);
-
-		assertEquals(editTitle, note.getNoteTitle());
-		assertEquals(editDescription, note.getNoteDescription());
-		homePage.logOut();
+		assertThat(note)
+			.isNotNull()
+			.satisfies(u -> {
+				assertThat(u.getNoteTitle()).isEqualTo(editTitle);
+				assertThat(u.getNoteDescription()).isEqualTo(editDescription);
+			});
 	}
 
 	// Write a test that deletes a note and verifies that the note is no longer displayed.
 	@Test
-	@Order(4)
-	public void noteDelete(){
-		HomePage homePage = new SignInPage(driver).doLogin(username, password);
+	public void noteDelete() throws InterruptedException {
+		noteCreation();
 
-		NotePage notePage = homePage.returnNotePage();
+		Thread.sleep(2000);
+
+		User user = this.userService.getUserByUsername(this.username);
+		int size = this.noteService.getNotesByUserId(user.getUserId()).size();
+
+		assertEquals("Home", driver.getTitle());
+		NotePage notePage = new HomePage(driver).returnNotePage();
+
+		Thread.sleep(2000);
 		ResultPage result = notePage.deleteNote(LEVEL);
-		homePage = result.redirectToHome(homeURL);
+		HomePage homePage = result.redirectToHome(homeURL);
 
+		Thread.sleep(2000);
 		List<NoteForm> notes = homePage.returnNotePage().readNotes(LEVEL);
-		assertEquals(notes.size(), 0);
-		homePage.logOut();
+		assertEquals(notes.size(), size - 1);
 	}
 
 	// Write a test that creates a set of credentials, verifies that they are displayed,
 	// and verifies that the displayed password is encrypted.
 	@Test
-	@Order(5)
-	public void createCredential(){
-		HomePage homePage = new SignInPage(driver).doLogin(username, password);
+	public void createCredential() throws InterruptedException {
+		testLogin();
 
-		CredentialPage credPage = homePage.returnCredentialPage();
+		Thread.sleep(2000);
+
+		assertEquals("Home", driver.getTitle());
+
+		CredentialPage credPage = new HomePage(driver).returnCredentialPage();
+
+		Thread.sleep(2000);
 		ResultPage result = credPage.addNewCredentials(url, userName, urlPassword);
-		homePage = result.redirectToHome(homeURL);
+		HomePage homePage = result.redirectToHome(homeURL);
 
+		Thread.sleep(2000);
 		List<CredForm> creds = homePage.returnCredentialPage().readTableCreds(LEVEL);
 		assertEquals(creds.size(), 1);
 
+		Thread.sleep(2000);
 		CredForm cred = creds.get(LEVEL - 1);
-		assertEquals(url, cred.getUrl());
-		assertEquals(userName, cred.getUsername());
-		assertNotEquals(urlPassword, cred.getPassword());
-
-		homePage.logOut();
+		assertThat(cred)
+			.isNotNull()
+			.satisfies(u -> {
+				assertThat(u.getUrl()).isEqualTo(url);
+				assertThat(u.getUsername()).isEqualTo(userName);
+				assertThat(u.getPassword()).isNotEqualTo(urlPassword);
+			});
 	}
 
 	// Write a test that views an existing set of credentials, verifies that the viewable password is unencrypted,
 	// edits the credentials, and
 	// verifies that the changes are displayed.
 	@Test
-	@Order(6)
-	public void manipulateCredential(){
-		HomePage homePage = new SignInPage(driver).doLogin(username, password);
+	public void manipulateCredential() throws InterruptedException {
+		createCredential();
+		Thread.sleep(5000);
 
-		CredentialPage credPage = homePage.returnCredentialPage();
+		assertEquals("Home", driver.getTitle());
+		CredentialPage credPage = new HomePage(driver).returnCredentialPage();
 
+		Thread.sleep(3000);
 		CredForm cred = credPage.readModalCreds(LEVEL);
-		assertEquals(urlPassword, cred.getPassword());
+		assertThat(cred)
+			.isNotNull()
+			.satisfies(u -> {
+				assertThat(u.getPassword()).isEqualTo(urlPassword);
+			});
 
-		ResultPage result = credPage.editCredentials(editUrl, editUserName, editUlPassword, LEVEL);
-		homePage = result.redirectToHome(homeURL);
+		ResultPage result = credPage.editCredentials(editUrl, editUserName, editUrlPassword, LEVEL);
+		result.redirectToHome(homeURL);
 
-		List<CredForm> creds = homePage.returnCredentialPage().readTableCreds(LEVEL);
-		assertEquals(creds.size(), 1);
+		Thread.sleep(3000);
+		assertEquals("Home", driver.getTitle());
 
+		User user = this.userService.getUserByUsername(this.username);
+		int size = this.credentialService.getCredentialsByUserId(user.getUserId()).size();
+
+		List<CredForm> creds = new HomePage(driver).returnCredentialPage().readTableCreds(size);
+		assertEquals(creds.size(), size);
+
+		Thread.sleep(3000);
 		cred = creds.get(LEVEL - 1);
-		assertEquals(editUrl, cred.getUrl());
-		assertEquals(editUserName, cred.getUsername());
-		assertNotEquals(editUlPassword, cred.getPassword());
-
-		homePage.logOut();
+		assertThat(cred)
+			.isNotNull()
+			.satisfies(u -> {
+				assertThat(u.getUrl()).isEqualTo(editUrl);
+				assertThat(u.getUsername()).isEqualTo(editUserName);
+				assertThat(u.getPassword()).isNotEqualTo(editUrlPassword);
+			});
 	}
 
 	// Write a test that deletes an existing set of credentials and
 	// verifies that the credentials are no longer displayed.
 	@Test
-	@Order(7)
-	public void deleteCredential(){
-		HomePage homePage = new SignInPage(driver).doLogin(username, password);
+	public void deleteCredential() throws InterruptedException {
+		createCredential();
+		Thread.sleep(5000);
 
+		User user = this.userService.getUserByUsername(this.username);
+		int size = this.credentialService.getCredentialsByUserId(user.getUserId()).size();
+
+		assertEquals("Home", driver.getTitle());
+		HomePage homePage = new HomePage(driver);
+
+		Thread.sleep(3000);
 		CredentialPage credPage = homePage.returnCredentialPage();
 		ResultPage result = credPage.deleteCredential(LEVEL);
 		homePage = result.redirectToHome(homeURL);
 
-		List<CredForm> notes = homePage.returnCredentialPage().readTableCreds(LEVEL);
-		assertEquals(notes.size(), 0);
-		homePage.logOut();
+		Thread.sleep(3000);
+		List<CredForm> creds = homePage.returnCredentialPage().readTableCreds(LEVEL);
+		assertEquals(creds.size(), size - 1);
 	}
 
 }

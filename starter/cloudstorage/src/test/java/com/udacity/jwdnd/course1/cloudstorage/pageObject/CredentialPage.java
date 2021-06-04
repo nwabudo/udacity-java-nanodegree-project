@@ -1,8 +1,8 @@
 package com.udacity.jwdnd.course1.cloudstorage.pageObject;
 
 import com.udacity.jwdnd.course1.cloudstorage.dto.CredForm;
-import com.udacity.jwdnd.course1.cloudstorage.dto.NoteForm;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -47,57 +47,67 @@ public class CredentialPage {
     @FindBy(id = "log-out")
     private WebElement logOutInput;
 
+    private WebDriverWait wait;
     private By urlText = By.cssSelector("#credentialTable th.urlText");
     private By usernameText = By.cssSelector("#credentialTable td.usernameText");
     private By encPassword = By.cssSelector("#credentialTable td.encPassword");
-
     private By editCredBy = By.id("editCred");
     private By delCredBy = By.id("deleteCred");
 
     public CredentialPage(WebDriver driver) {
         this.driver = driver;
+        wait = new WebDriverWait(this.driver, 5);
         PageFactory.initElements(driver, this);
     }
 
-    public ResultPage addNewCredentials(String url, String username, String password){
-        // this.credTabInput.click();
+    public ResultPage addNewCredentials(String url, String username, String password) throws InterruptedException {
+
         this.addCredElem.click();
+        Thread.sleep(2000);
 
         this.credUrlField.sendKeys(url);
         this.credUsernameField.sendKeys(username);
         this.credPasswordField.sendKeys(password);
 
         this.saveChanges.click();
+        Thread.sleep(2000);
+
         return new ResultPage(driver);
     }
 
-    public ResultPage editCredentials(String url, String username, String password, int level){
-        //this.credTabInput.click();
-        //this.editCredElem.get(level - 1).click();
-        WebDriverWait wait = new WebDriverWait(driver, 10);
-        List<WebElement> marker = wait.until(webDriver -> webDriver.findElements(editCredBy));
+    public ResultPage editCredentials(String url, String username, String password, int level) throws InterruptedException {
+
+        List<WebElement> marker = this.wait.until(webDriver -> webDriver.findElements(editCredBy));
         marker.get(level - 1).click();
+        Thread.sleep(3000);
 
-        this.credUrlField.clear();
+        this.credUrlField.sendKeys(Keys.CONTROL + "a");
+        this.credUrlField.sendKeys(Keys.DELETE);
         this.credUrlField.sendKeys(url);
-        this.credUsernameField.clear();
+
+        this.credUsernameField.sendKeys(Keys.CONTROL + "a");
+        this.credUsernameField.sendKeys(Keys.DELETE);
         this.credUsernameField.sendKeys(username);
-        this.credPasswordField.clear();
+
+        this.credPasswordField.sendKeys(Keys.CONTROL + "a");
+        this.credPasswordField.sendKeys(Keys.DELETE);
         this.credPasswordField.sendKeys(password);
 
         this.saveChanges.click();
+
+        Thread.sleep(3000);
         return new ResultPage(driver);
     }
 
-    public ResultPage deleteCredential(int level){
-        // this.credTabInput.click();
+    public ResultPage deleteCredential(int level) throws InterruptedException {
+
         this.deleteCredElem.get(level - 1).click();
+        Thread.sleep(3000);
         return new ResultPage(driver);
     }
 
-    public List<CredForm> readTableCreds(int level){
-        //this.credTabInput.click();
-        WebDriverWait wait = new WebDriverWait(driver, 10);
+    public List<CredForm> readTableCreds(int level) throws InterruptedException {
+        Thread.sleep(3000);
         List<WebElement> urlTexts = wait.until(webDriver -> webDriver.findElements(urlText));
         List<WebElement> userNameTexts = wait.until(webDriver -> webDriver.findElements(usernameText));
         List<WebElement> passwordTexts = wait.until(webDriver -> webDriver.findElements(encPassword));
@@ -115,23 +125,22 @@ public class CredentialPage {
         return returnList;
     }
 
-    public CredForm readModalCreds(int level){
-        //this.credTabInput.click();
-        //this.editCredElem.get(level - 1).click();
-        WebDriverWait wait = new WebDriverWait(driver, 10);
+    public CredForm readModalCreds(int level) throws InterruptedException {
         List<WebElement> marker = wait.until(webDriver -> webDriver.findElements(editCredBy));
         marker.get(level - 1).click();
+        Thread.sleep(3000);
 
-        String url = this.credUrlField.getText();
-        String username = this.credUsernameField.getText();
-        String password = this.credPasswordField.getText();
+        String url = this.credUrlField.getAttribute("value");
+        String username = this.credUsernameField.getAttribute("value");
+        String password = this.credPasswordField.getAttribute("value");
 
         this.cancel.click();
+        Thread.sleep(2000);
         return new CredForm(url, username, password);
     }
 
-    public SignInPage logOut(){
+    public LoginPage logOut(){
         this.logOutInput.click();
-        return new SignInPage(driver);
+        return new LoginPage(driver);
     }
 }

@@ -43,7 +43,6 @@ The back-end is all about security and connecting the front-end to database data
  - Since you were provided with a database schema to work with, you can design Java classes to match the data in the database. These should be POJOs (Plain Old Java Objects) with fields that match the names and data types in the schema, and you should create one class per database table. These classes typically are placed in a `model` or `entity` package.
  - To connect these model classes with database data, implement MyBatis mapper interfaces for each of the model types. These mappers should have methods that represent specific SQL queries and statements required by the functionality of the application. They should support the basic CRUD (Create, Read, Update, Delete) operations for their respective models at the very least. You can place these classes in (you guessed it!) the `mapper` package.
 
-
 ### The Front-End
 Your tech lead has done a thorough job developing HTML templates for the required application pages. They have included fields, modal forms, success and error message elements, as well as styling and functional components using Bootstrap as a framework. You must edit these templates and insert Thymeleaf attributes to supply the back-end data and functionality described by the following individual page requirements:
 
@@ -130,3 +129,19 @@ You aren't required to understand hashing or encryption and that's why your tech
 [Encryption](https://en.wikipedia.org/wiki/Encryption)
 
 All of us here at Super*Duper*Drive wish you good luck with the project!
+
+## My Submission
+
+### Repo Submitted to
+
+* [GitHub](https://github.com/nwabudo/udacity-java-nanodegree-project/commits/main/starter/cloudstorage)
+
+### Resources that aided me in this
+
+* https://memorynotfound.com/spring-mvc-download-file-examples/
+* https://stackoverflow.com/questions/5673260/downloading-a-file-from-spring-controllers
+* https://www.baeldung.com/spring-mvc-image-media-data
+* https://www.programmersought.com/article/5239596415/s
+* https://www.wimdeblauwe.com/blog/2021/02/12/junit-5-test-class-orderer-for-spring-boot/
+* https://www.baeldung.com/junit-5-test-order
+* https://dev.to/ramitd1995/selenium-java-tutorial-automation-testing-of-user-signup-form-3kmg

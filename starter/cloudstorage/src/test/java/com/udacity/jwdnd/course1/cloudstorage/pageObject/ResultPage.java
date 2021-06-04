@@ -21,9 +21,11 @@ public class ResultPage {
         PageFactory.initElements(driver, this);
     }
 
-    public HomePage redirectToHome(String url){
+    public HomePage redirectToHome(String url) throws InterruptedException {
         this.continueButton.click();
+        Thread.sleep(3000);
         driver.get(url);
+        Thread.sleep(3000);
         return new HomePage(driver);
     }
 }

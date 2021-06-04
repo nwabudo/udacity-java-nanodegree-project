@@ -18,4 +18,6 @@ public interface NoteService {
     int updateNote(NoteForm noteForm);
 
     List<NoteForm> mapTo(List<Note> notes);
+
+    void deleteAll();
 }

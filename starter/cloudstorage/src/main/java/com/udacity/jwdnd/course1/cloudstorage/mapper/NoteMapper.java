@@ -25,4 +25,7 @@ public interface NoteMapper {
 
     @Delete("DELETE FROM NOTES WHERE noteid = #{noteId}")
     void deleteNote(Integer noteId);
+
+    @Delete("DELETE FROM NOTES")
+    void deleteAll();
 }

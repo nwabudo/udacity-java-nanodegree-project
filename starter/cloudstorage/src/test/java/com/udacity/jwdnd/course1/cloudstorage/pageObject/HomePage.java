@@ -1,9 +1,12 @@
 package com.udacity.jwdnd.course1.cloudstorage.pageObject;
 
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class HomePage {
 
@@ -34,19 +37,25 @@ public class HomePage {
         this.noteTabInput.click();
     }
 
-    public NotePage returnNotePage(){
+    public NotePage returnNotePage() throws InterruptedException {
         this.noteTabInput.click();
+
+        Thread.sleep(3000);
+
         return new NotePage(driver);
     }
 
-    public CredentialPage returnCredentialPage(){
+    public CredentialPage returnCredentialPage() throws InterruptedException {
         this.credTabInput.click();
+
+        Thread.sleep(3000);
         return new CredentialPage(driver);
     }
 
-    public SignInPage logOut(){
-        this.logOutInput.click();
-        return new SignInPage(driver);
+    public LoginPage logOut(){
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", logOutInput);
+        new WebDriverWait(driver,4).until(ExpectedConditions.titleIs("Login"));
+        return new LoginPage(driver);
     }
 
 }

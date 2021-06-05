@@ -40,7 +40,7 @@ class CloudStorageApplicationTests {
 	@Autowired
 	private UserService userService;
 
-	private static WebDriver driver;
+	private WebDriver driver;
 
 	// Sign Up and Login Details
 	public String username = "budos";
@@ -92,8 +92,8 @@ class CloudStorageApplicationTests {
 		this.noteService.deleteAll();
 	}
 
-	@AfterAll
-	public static void afterAll() {
+	@AfterEach
+	public void afterEach() {
 		if (driver != null) {
 			driver.quit();
 			driver = null;
@@ -115,7 +115,7 @@ class CloudStorageApplicationTests {
 		assertEquals(loginUrl, actualUrl);
 
 		driver.findElement(signUpLink).click();
-		Thread.sleep(5000);
+		Thread.sleep(2000);
 		new WebDriverWait(driver,4).until(ExpectedConditions.titleIs("Sign Up"));
 		assertEquals("Sign Up", driver.getTitle());
 
@@ -333,7 +333,7 @@ class CloudStorageApplicationTests {
 		ResultPage result = credPage.editCredentials(editUrl, editUserName, editUrlPassword, LEVEL);
 		result.redirectToHome(homeURL);
 
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		assertEquals("Home", driver.getTitle());
 
 		User user = this.userService.getUserByUsername(this.username);
@@ -358,7 +358,7 @@ class CloudStorageApplicationTests {
 	@Test
 	public void deleteCredential() throws InterruptedException {
 		createCredential();
-		Thread.sleep(5000);
+		Thread.sleep(2000);
 
 		User user = this.userService.getUserByUsername(this.username);
 		int size = this.credentialService.getCredentialsByUserId(user.getUserId()).size();
@@ -366,12 +366,12 @@ class CloudStorageApplicationTests {
 		assertEquals("Home", driver.getTitle());
 		HomePage homePage = new HomePage(driver);
 
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		CredentialPage credPage = homePage.returnCredentialPage();
 		ResultPage result = credPage.deleteCredential(LEVEL);
 		homePage = result.redirectToHome(homeURL);
 
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		List<CredForm> creds = homePage.returnCredentialPage().readTableCreds(LEVEL);
 		assertEquals(creds.size(), size - 1);
 	}

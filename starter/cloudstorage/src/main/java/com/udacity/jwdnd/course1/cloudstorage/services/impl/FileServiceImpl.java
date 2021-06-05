@@ -28,6 +28,11 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public File getFileByName(String fileName){
+        return this.fileMapper.getFileByName(fileName);
+    }
+
+    @Override
     public List<File> getFilesByUserId(int userId) {
         return this.fileMapper.getFiles(userId);
     }
@@ -43,8 +48,8 @@ public class FileServiceImpl implements FileService {
         if(file == null) return "File cannot be empty or Null";
 
         File newFile = new File();
-        List<File> availFiles = this.fileMapper.getFilesByName(file.getName());
-        if(availFiles == null || availFiles.isEmpty()) try {
+        File availFiles = this.fileMapper.getFileByName(file.getOriginalFilename());
+        if(availFiles == null) try {
             newFile.setFileName(file.getOriginalFilename());
             newFile.setFileData(file.getBytes());
             newFile.setFileSize(String.valueOf(file.getSize()));

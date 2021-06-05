@@ -23,9 +23,9 @@ public class ResultPage {
 
     public HomePage redirectToHome(String url) throws InterruptedException {
         this.continueButton.click();
-        Thread.sleep(3000);
+        Thread.sleep(2000);
         driver.get(url);
-        Thread.sleep(3000);
+        Thread.sleep(1000);
         return new HomePage(driver);
     }
 }

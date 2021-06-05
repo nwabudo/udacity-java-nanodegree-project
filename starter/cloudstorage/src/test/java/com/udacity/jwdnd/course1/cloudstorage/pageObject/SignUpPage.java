@@ -93,10 +93,12 @@ public class SignUpPage {
              if(getErrorMessage())
                  System.out.println(this.driver.findElement(signUpFailureMessage).getText());
          }catch(Exception ex){
-             clickLogInButton();
+            // clickLogInButton();
+             System.out.println("SignUp Successful");
          }
 
         Thread.sleep(3000);
+
         String url = driver.getCurrentUrl();
         if(!url.contains("login")){
             url = url.split("/(?!.*/)")[0] + "/login";

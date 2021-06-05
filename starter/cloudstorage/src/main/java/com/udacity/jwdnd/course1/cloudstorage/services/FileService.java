@@ -9,6 +9,8 @@ public interface FileService {
 
     File getFile(int fileId);
 
+    File getFileByName(String fileName);
+
     List<File> getFilesByUserId(int userId);
 
     void removeFile(int fileId);
